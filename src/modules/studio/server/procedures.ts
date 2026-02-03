@@ -3,6 +3,7 @@ import { z } from "zod";
 import { videos } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
 import { eq, and, or, lt, desc } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const studioRouter = createTRPCRouter({
   getMany: protectedProcedure
@@ -34,7 +35,6 @@ export const studioRouter = createTRPCRouter({
         )
         .orderBy(desc(videos.updatedAt), desc(videos.id))
         .limit(limit + 1);
-
       const hasMore = data.length > limit;
       // Remove the last item of there's more data
       const items = hasMore ? data.slice(0, -1) : data;
