@@ -53,13 +53,13 @@ MUX_WEBHOOK_SECRET=
 3. Installation & Setup
 Bash
 # Install dependencies
-npm install
+bun install
 
 # Push database schema
-npm run db:push
+bun run db:push
 
 # Start the development server
-npm run dev
+bun run dev:all
 Open http://localhost:3000 to see your app in action.
 
 🏗️ Project Architecture
