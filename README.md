@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+📺 NewTube - Full-Stack Video Streaming Platform
+NewTube is a high-performance video-sharing platform built with the modern web stack. It replicates the core experience of YouTube, featuring seamless video processing, AI-powered subtitles, and a robust creator studio.
 
-## Getting Started
+🚀 Tech Stack
+Framework: Next.js 15 (App Router)
 
-First, run the development server:
+Styling: Tailwind CSS & Shadcn UI
 
-```bash
+Database: PostgreSQL with Drizzle ORM
+
+Video Infrastructure: Mux (Encoding, Streaming, and Webhooks)
+
+API Layer: tRPC (End-to-end typesafety)
+
+Authentication: Clerk
+
+Deployment: Vercel
+
+✨ Key Features
+✅ Seamless Video Uploads: Integrated with Mux for high-quality encoding and delivery.
+
+✅ Real-time Status Tracking: Uses Webhooks to update video processing states (Preparing, Ready, Errored).
+
+✅ AI-Generated Subtitles: Automatic caption generation in multiple languages (English & German) using Mux AI.
+
+✅ Smart Hover Previews: Dynamic video/GIF previews on hover for better user engagement.
+
+✅ Creator Studio: A dedicated dashboard for managing uploads, visibility, and metadata.
+
+✅ Infinite Scrolling: Optimized data fetching for video feeds using tRPC infinite queries.
+
+✅ Type-Safe Webhooks: Robust handling of Mux events with custom TypeScript intersection types.
+
+🛠️ Getting Started
+1. Prerequisites
+Ensure you have Node.js 20+ and a PostgreSQL instance running.
+
+2. Environment Variables
+Create a .env.local file in the root directory and add the following:
+
+Code snippet
+# Database
+DATABASE_URL=your_postgresql_url
+
+# Clerk Auth
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
+CLERK_SECRET_KEY=
+
+# Mux Video
+MUX_TOKEN_ID=
+MUX_TOKEN_SECRET=
+MUX_WEBHOOK_SECRET=
+3. Installation & Setup
+Bash
+# Install dependencies
+npm install
+
+# Push database schema
+npm run db:push
+
+# Start the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Open http://localhost:3000 to see your app in action.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+🏗️ Project Architecture
+Plaintext
+src/
+├── app/            # Next.js App Router (Routes & API)
+├── components/     # Reusable UI components
+├── db/             # Database schema and Drizzle client
+├── lib/            # External service clients (Mux, etc.)
+├── modules/        # Feature-based modules (Videos, Studio, Auth)
+│   └── ui/         # Module-specific components
+└── trpc/           # tRPC procedures and routers
+📝 License
+This project is licensed under the MIT License.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+📫 Contact
+If you have any questions or suggestions, feel free to open an issue or reach out!
