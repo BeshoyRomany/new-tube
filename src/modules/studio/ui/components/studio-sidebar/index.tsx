@@ -15,6 +15,7 @@ import StudioSidebarHeader from "./studio-sidebar-header";
 
 const StudioSidebar = () => {
   const pathname = usePathname();
+  
   return (
     <Sidebar className="pt-16 z-40" collapsible={"icon"}>
       <SidebarContent className="bg-background">
@@ -28,7 +29,7 @@ const StudioSidebar = () => {
                 tooltip="Content"
                 asChild
               >
-                <Link href="/sudio">
+                <Link href="/studio">
                   <VideoIcon className="size-5" />
                   <span className="text-sm">Content</span>
                 </Link>
