@@ -1,28 +1,33 @@
-import { db } from "@/db";
-import { z } from "zod";
-import { videos } from "@/db/schema";
-import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
-import { eq, and, or, lt, desc } from "drizzle-orm";
-import { TRPCError } from "@trpc/server";
+import { db } from '@/db';
+import { z } from 'zod';
+import { videos } from '@/db/schema';
+import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
+import { eq, and, or, lt, desc } from 'drizzle-orm';
+import { TRPCError } from '@trpc/server';
 
 export const studioRouter = createTRPCRouter({
-  getOne: protectedProcedure.input(
+  getOne: protectedProcedure
+    .input(
       z.object({
-        id: z.string().uuid()
-      }),
-    ).query(async ({ctx, input})=> {
-      const {id: userId} = ctx.user;
-      const {id} = input;
-      const [video] = await db.select().from(videos).where(and(eq(videos.id, id), eq(videos.userId, userId)));
-      if(!video) throw new TRPCError({ code:"NOT_FOUND"})
-      return video
+        id: z.uuid(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { id } = input;
+      const [video] = await db
+        .select()
+        .from(videos)
+        .where(and(eq(videos.id, id), eq(videos.userId, userId)));
+      if (!video) throw new TRPCError({ code: 'NOT_FOUND' });
+      return video;
     }),
   getMany: protectedProcedure
     .input(
       z.object({
         cursor: z.object({ id: z.string(), updatedAt: z.date() }).nullish(),
         limit: z.number().min(1).max(100),
-      }),
+      })
     ) //Inversion of Control (IoC)
     .query(async ({ ctx, input }) => {
       const { cursor, limit } = input;
@@ -38,11 +43,11 @@ export const studioRouter = createTRPCRouter({
                   lt(videos.updatedAt, cursor.updatedAt),
                   and(
                     eq(videos.updatedAt, cursor.updatedAt),
-                    lt(videos.id, cursor.id),
-                  ),
+                    lt(videos.id, cursor.id)
+                  )
                 )
-              : undefined,
-          ),
+              : undefined
+          )
         )
         .orderBy(desc(videos.updatedAt), desc(videos.id))
         .limit(limit + 1);

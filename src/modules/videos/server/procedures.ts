@@ -1,12 +1,90 @@
 import { db } from '@/db';
 import { videos, videoUpdateSchema } from '@/db/schema';
 import { mux } from '@/lib/mux';
+import { UploadThingError, UTApi } from 'uploadthing/server';
 import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
 import { TRPCError } from '@trpc/server';
 import { and, eq } from 'drizzle-orm';
 import z from 'zod';
+import { workflow } from '@/lib/workflow';
 
+const utapi = new UTApi();
 export const videosRouter = createTRPCRouter({
+  generateTitle: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { workflowRunId } = await workflow.trigger({
+        url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/title`,
+        body: { userId, videoId: input.id },
+      });
+      return workflowRunId;
+    }),
+  generateDescription: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { workflowRunId } = await workflow.trigger({
+        url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/description`,
+        body: { userId, videoId: input.id },
+      });
+      return workflowRunId;
+    }),
+  generateThumbnail: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const { workflowRunId } = await workflow.trigger({
+        url: `${process.env.UPSTASH_WORKFLOW_URL}/api/videos/workflows/thumbnail`,
+        body: { userId, videoId: input.id },
+      });
+      return workflowRunId;
+    }),
+  restoreThumbnail: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+      const [existingVideo] = await db
+        .select()
+        .from(videos)
+        .where(and(eq(videos.id, input.id), eq(videos.userId, userId)));
+
+      if (!existingVideo) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      // REMOVE the current Thumbnail & clean the DB before upload new - to keep the storage empty
+      if (existingVideo.thumbnailKey) {
+        try {
+          await utapi.deleteFiles(existingVideo.thumbnailKey);
+        } catch (e) {
+          console.error('Failed to delete old thumbnail', e);
+        }
+        await db
+          .update(videos)
+          .set({ thumbnailKey: null, thumbnailUrl: null })
+          .where(and(eq(videos.id, input.id), eq(videos.userId, userId)));
+      }
+
+      if (!existingVideo.muxPlaybackId)
+        throw new TRPCError({ code: 'BAD_REQUEST' });
+
+      const tempThumbnailUrl = `https://image.mux.com/${existingVideo.muxPlaybackId}/thumbnail.jpg`;
+      // Upload a copy from mux images into UploadThing Storage
+      const uploadedThumbnail =
+        await utapi.uploadFilesFromUrl(tempThumbnailUrl);
+
+      if (!uploadedThumbnail.data)
+        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+
+      const { key: thumbnailKey, url: thumbnailUrl } = uploadedThumbnail.data;
+
+      const [updatedVideo] = await db
+        .update(videos)
+        .set({ thumbnailUrl, thumbnailKey })
+        .where(and(eq(videos.id, input.id), eq(videos.userId, userId)))
+        .returning();
+
+      return updatedVideo;
+    }),
   remove: protectedProcedure
     .input(z.object({ id: z.uuid() }))
     .mutation(async ({ ctx, input }) => {

@@ -1,11 +1,11 @@
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { ratelimit } from "@/lib/ratelimit";
-import { auth } from "@clerk/nextjs/server";
-import { initTRPC, TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
-import { cache } from "react";
-import superjson from "superjson";
+import { db } from '@/db';
+import { users } from '@/db/schema';
+import { ratelimit } from '@/lib/ratelimit';
+import { auth } from '@clerk/nextjs/server';
+import { initTRPC, TRPCError } from '@trpc/server';
+import { eq } from 'drizzle-orm';
+import { cache } from 'react';
+import superjson from 'superjson';
 
 export const createTRPCContext = cache(async () => {
   const { userId } = await auth();
@@ -35,7 +35,7 @@ export const protectedProcedure = t.procedure.use(
   async function isAuthed(opts) {
     const { ctx } = opts;
     // check if the user authorized
-    if (!ctx.clerkUserId) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (!ctx.clerkUserId) throw new TRPCError({ code: 'UNAUTHORIZED' });
     // check if the user in the database
     const [user] = await db
       .select()
@@ -43,15 +43,15 @@ export const protectedProcedure = t.procedure.use(
       .where(eq(users.clerkId, ctx.clerkUserId))
       .limit(1);
     if (!user) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
     // Check the request limits -> we can move this up using clerkUserId
     const { success } = await ratelimit.limit(user.id);
-    if (!success) throw new TRPCError({ code: "TOO_MANY_REQUESTS" });
+    if (!success) throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
 
     //If pass all Middlewares -> next
     return opts.next({
       ctx: { ...ctx, user },
     });
-  },
+  }
 );

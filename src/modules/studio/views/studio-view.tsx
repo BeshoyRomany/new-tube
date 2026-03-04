@@ -1,4 +1,4 @@
-import { VideoSection } from "../sections/videos-section";
+import { VideoSection } from '../ui/sections/videos-section';
 
 export const StudioView = () => {
   return (
