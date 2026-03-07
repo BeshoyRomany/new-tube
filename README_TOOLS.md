@@ -44,3 +44,14 @@ For faster workflow, add these commands to your `package.json` under the `"scrip
 ## yml file
 
 C:\Users\beshoy.romany\AppData\Local/ngrok/ngrok.yml
+
+## Notes
+
+(1)-Pusher notification & websockets (done)
+-Studio Module -> invalidate video status ready (webhook)
+-Studio Module -> invalidate generate title & generate description and generate thumbnail (workflows)
+|----------------------------------------------------------------------------|
+
+# Dates & Deadlines
+
+Start part 2 on Saturday 7/3/2026

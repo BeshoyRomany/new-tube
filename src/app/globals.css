@@ -91,3 +91,7 @@ body {
   outline: none !important;
   box-shadow: none !important;
 }
+
+mux-player::part(poster) {
+  object-fit: cover !important;
+}

@@ -3,6 +3,7 @@ import { serve } from '@upstash/workflow/nextjs';
 import { db } from '@/db';
 import { videos } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { pusherServer } from '@/lib/pusher';
 
 interface InputType {
   userId: string;
@@ -69,5 +70,12 @@ export const { POST } = serve<InputType>(async (context) => {
         title,
       })
       .where(and(eq(videos.id, video.id), eq(videos.userId, video.userId)));
+  });
+
+  //Inform the front-end to update the layout
+  await context.run('trigger-pusher', async () => {
+    await pusherServer.trigger(`video-${videoId}`, 'video-updated', {
+      type: 'TITLE',
+    });
   });
 });
