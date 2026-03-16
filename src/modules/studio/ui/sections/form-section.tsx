@@ -346,7 +346,11 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                               )}
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent side="top" align="center">
+                          <TooltipContent
+                            side="top"
+                            align="center"
+                            className="bg-black/70"
+                          >
                             <p>Generate by AI</p>
                           </TooltipContent>
                         </Tooltip>
@@ -393,7 +397,11 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                               )}
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent side="top" align="center">
+                          <TooltipContent
+                            side="top"
+                            align="center"
+                            className="bg-black/70"
+                          >
                             <p>Generate by AI</p>
                           </TooltipContent>
                         </Tooltip>
