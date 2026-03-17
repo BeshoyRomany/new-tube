@@ -32,14 +32,62 @@ export const users = pgTable(
   (t) => [uniqueIndex('clerk_id_idx').on(t.clerkId)]
 );
 export const userRelations = relations(users, ({ many }) => ({
+  //one user has many videos created
   videos: many(videos),
+  //one user has many views he watched
   views: many(videoViews),
+  //one user has many reactions he reacted
   reactions: many(videoReactions),
+  //one user has many subscriptions to a channels for examples
+  subscriptions: many(subscriptions, {
+    relationName: 'subscriptions_viewer_id_fkey',
+  }),
+  //one user has many subscribers to his channel
+  subscribers: many(subscriptions, {
+    relationName: 'subscribers_creator_id_fkey',
+  }),
 }));
 
 export const usersSelectSchema = createSelectSchema(users);
 export const usersInsertSchema = createInsertSchema(users);
 export const usersUpdateSchema = createUpdateSchema(users);
+
+//************* Subscriptions table *************//
+export const subscriptions = pgTable(
+  'subscriptions',
+  {
+    viewerId: uuid('viewer_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    creatorId: uuid('creator_id')
+      .references(() => users.id, {
+        onDelete: 'cascade',
+      })
+      .notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [
+    primaryKey({
+      name: 'subscriptions_pk',
+      columns: [t.viewerId, t.creatorId],
+    }),
+  ]
+);
+
+// each subscription has one user who subscribe and one creator who created the video
+export const subscriptionRelations = relations(subscriptions, ({ one }) => ({
+  viewerId: one(users, {
+    fields: [subscriptions.viewerId],
+    references: [users.id],
+    relationName: 'subscriptions_viewer_id_fkey',
+  }),
+  creatorId: one(users, {
+    fields: [subscriptions.creatorId],
+    references: [users.id],
+    relationName: 'subscribers_creator_id_fkey',
+  }),
+}));
 
 //************* Categories table *************//
 export const categories = pgTable(

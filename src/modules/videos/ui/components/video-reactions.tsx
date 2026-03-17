@@ -28,9 +28,10 @@ export const VideoReactions = ({
       // TODO: Invalidate "like" playlist
     },
     onError: (error) => {
-      toast.error('Something went wrong');
       if (error.data?.code === 'UNAUTHORIZED') {
         clerk.openSignIn();
+      } else {
+        toast.error('Something went wrong');
       }
     },
   });
@@ -40,9 +41,10 @@ export const VideoReactions = ({
       // TODO: Invalidate "like" playlist
     },
     onError: (error) => {
-      toast.error('Something went wrong');
       if (error.data?.code === 'UNAUTHORIZED') {
         clerk.openSignIn();
+      } else {
+        toast.error('Something went wrong');
       }
     },
   });
