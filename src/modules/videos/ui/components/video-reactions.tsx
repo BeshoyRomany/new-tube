@@ -1,4 +1,3 @@
-'use client';
 import { useClerk } from '@clerk/nextjs';
 import { trpc } from '@/trpc/client';
 import { Button } from '@/components/ui/button';

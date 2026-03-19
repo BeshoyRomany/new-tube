@@ -85,7 +85,7 @@ export const videosRouter = createTRPCRouter({
           viewerReaction: viewerReactions.type,
         })
         .from(videos)
-        .innerJoin(users, eq(videos.userId, users.id))
+        .innerJoin(users, eq(users.id, videos.userId))
         .leftJoin(viewerReactions, eq(viewerReactions.videoId, videos.id))
         .leftJoin(
           viewerSubscriptions,
