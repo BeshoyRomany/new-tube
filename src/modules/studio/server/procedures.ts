@@ -4,6 +4,7 @@ import { videos } from '@/db/schema';
 import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
 import { eq, and, or, lt, desc } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
+import { DEFAULT_LIMIT } from '@/constants';
 
 export const studioRouter = createTRPCRouter({
   getOne: protectedProcedure
@@ -25,8 +26,10 @@ export const studioRouter = createTRPCRouter({
   getMany: protectedProcedure
     .input(
       z.object({
-        cursor: z.object({ id: z.string(), updatedAt: z.date() }).nullish(),
-        limit: z.number().min(1).max(100),
+        cursor: z
+          .object({ id: z.string(), updatedAt: z.coerce.date() })
+          .nullish(),
+        limit: z.number().min(1).max(100).default(DEFAULT_LIMIT),
       })
     ) //Inversion of Control (IoC)
     .query(async ({ ctx, input }) => {

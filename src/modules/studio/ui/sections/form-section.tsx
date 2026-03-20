@@ -297,7 +297,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                 >
                   Save
                 </Button>
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
                       <MoreVerticalIcon />
