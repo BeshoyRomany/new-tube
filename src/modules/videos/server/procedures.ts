@@ -244,6 +244,8 @@ export const videosRouter = createTRPCRouter({
   }),
 });
 
+//CTE Common Table Expression
+
 //Join Explanation
 //.from(videos)                        // Step 1: videos table
 //.innerJoin(users, ...)               // Step 2: videos + users
