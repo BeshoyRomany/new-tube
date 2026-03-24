@@ -53,4 +53,10 @@ Building understanding step by step in layers instead of all at once.
 1- Tech integrations (trpc, clerk, webhooks, upstash)
 2- InfinityScrolling (cursor, getMany Queries & useInterSectionObserver)
 3- getOne.video query & understand the complex quires, sub-quires, aggregations
-4- app routes architecture like (home), (auth) -> sign-in -> [[..sign_in]] & [[...sign-out]]
+4- app routes architecture like (home), (auth) -> sign-in -> [[...sign_in]] & [[...sign-out]]
+5- Self-Referencing Relationship example (parentId <-> comment.id) comment Schema
+6- drizzle-zod validation .pick, .omit & shape
+7- create comment and replay procedure
+8- OpenAI SDK & Generate background jobs
+9- Thumbnail upload the video and the upload SDKs
+10- Comments & CTE (Common Table Expression) to count replies for each parent comment

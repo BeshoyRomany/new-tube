@@ -9,7 +9,7 @@ import {
   videoViews,
 } from '@/db/schema';
 import { mux } from '@/lib/mux';
-import { UploadThingError, UTApi } from 'uploadthing/server';
+import { UTApi } from 'uploadthing/server';
 import {
   baseProcedure,
   createTRPCRouter,

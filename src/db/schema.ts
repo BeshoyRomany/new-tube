@@ -10,12 +10,14 @@ import {
   integer,
   pgEnum,
   primaryKey,
+  foreignKey,
 } from 'drizzle-orm/pg-core';
 import {
   createInsertSchema,
   createSelectSchema,
   createUpdateSchema,
 } from 'drizzle-zod';
+import { comment } from 'postcss';
 
 export const reactionType = pgEnum('reaction_type', ['like', 'dislike']);
 
@@ -175,18 +177,31 @@ export const videoRelations = relations(videos, ({ one, many }) => ({
 }));
 
 //************* Comments table *************//
-export const comments = pgTable('comments', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .references(() => users.id, { onDelete: 'cascade' })
-    .notNull(),
-  videoId: uuid('video_id')
-    .references(() => videos.id, { onDelete: 'cascade' })
-    .notNull(),
-  value: text('value').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+export const comments = pgTable(
+  'comments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    parentId: uuid('parent_id'),
+    userId: uuid('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    videoId: uuid('video_id')
+      .references(() => videos.id, { onDelete: 'cascade' })
+      .notNull(),
+    value: text('value').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => {
+    return [
+      foreignKey({
+        columns: [t.parentId],
+        foreignColumns: [t.id],
+        name: 'comment_replies_parent_id_fkey',
+      }).onDelete('cascade'),
+    ];
+  }
+);
 
 export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, {
@@ -197,6 +212,15 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
     fields: [comments.videoId],
     references: [videos.id],
   }),
+  //one sub comment (parentId) has one comment.id
+  parent: one(comments, {
+    fields: [comments.parentId],
+    references: [comments.id],
+    relationName: 'comment_replies_parent_id_fkey',
+  }),
+  // one comment.id has many replies
+  replies: many(comments, { relationName: 'comment_replies_parent_id_fkey' }),
+
   //one comment has many reactions
   reactions: many(commentReactions),
 }));
