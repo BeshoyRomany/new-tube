@@ -7,7 +7,6 @@ import { CommentForm } from '@/modules/comments/ui/components/comments-form';
 import { CommentItem } from '@/modules/comments/ui/components/comment-item';
 import { DEFAULT_LIMIT } from '@/constants';
 import InfiniteScroll from '@/components/infinite-scroll';
-import { comment } from 'postcss';
 import { Loader2Icon } from 'lucide-react';
 
 interface CommentsSectionsProps {

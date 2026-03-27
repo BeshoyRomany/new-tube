@@ -60,3 +60,4 @@ Building understanding step by step in layers instead of all at once.
 8- OpenAI SDK & Generate background jobs
 9- Thumbnail upload the video and the upload SDKs
 10- Comments & CTE (Common Table Expression) to count replies for each parent comment
+11- cva, variantProps & cn -> tailwind
