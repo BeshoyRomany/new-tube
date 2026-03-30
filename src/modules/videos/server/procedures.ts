@@ -127,6 +127,59 @@ export const videosRouter = createTRPCRouter({
       });
       return workflowRunId;
     }),
+  revalidate: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: userId } = ctx.user;
+
+      const [existingVideo] = await db
+        .select()
+        .from(videos)
+        .where(and(eq(videos.id, input.id), eq(videos.userId, userId)));
+
+      if (!existingVideo) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (!existingVideo.muxUploadId)
+        throw new TRPCError({ code: 'BAD_REQUEST' });
+
+      /*
+      using mux helpers to retrieve the video manually bu using muxUploadId then -> assetId and we relied on muxUploadId before assetId directly because maybe the webhook lagged to give us also the assetId in route.ts file for mux webhook
+      in step "case 'video.asset.created'"
+      */
+      const upload = await mux.video.uploads.retrieve(
+        existingVideo.muxUploadId
+      );
+
+      if (!upload || !upload.asset_id)
+        throw new TRPCError({ code: 'BAD_REQUEST' });
+
+      const asset = await mux.video.assets.retrieve(upload.asset_id);
+
+      if (!asset) {
+        throw new TRPCError({ code: 'BAD_REQUEST' });
+      }
+
+      const playbackId = asset.playback_ids?.[0].id;
+      const duration = asset.duration ? Math.round(asset.duration) : 0;
+      const videoTrack = asset.tracks?.find((t) => t.type === 'video');
+      const audioTrack = asset.tracks?.find((t) => t.type === 'audio');
+      const muxTrackId = videoTrack?.id;
+      const muxTrackStatus = audioTrack?.status;
+
+      const [updateVideo] = await db
+        .update(videos)
+        .set({
+          muxStatus: asset.status,
+          muxPlaybackId: playbackId,
+          muxAssetId: asset.id,
+          muxTrackId: muxTrackId,
+          muxTrackStatus: muxTrackStatus,
+          duration,
+        })
+        .where(and(eq(videos.userId, userId), eq(videos.id, input.id)))
+        .returning();
+
+      return updateVideo;
+    }),
   restoreThumbnail: protectedProcedure
     .input(z.object({ id: z.uuid() }))
     .mutation(async ({ ctx, input }) => {
