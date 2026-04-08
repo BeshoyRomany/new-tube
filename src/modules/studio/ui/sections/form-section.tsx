@@ -59,6 +59,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { APP_URL } from '@/constants';
 interface FormSectionProps {
   videoId: string;
 }
@@ -264,8 +265,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     update.mutate(data);
   };
 
-  // TODO: Change if deploying outside of VERCEL
-  const fullUrl = `${process.env.VERCEL_URL || 'https://localhost:3001'}/videos/${videoId}`;
+  const fullUrl = `${APP_URL}/videos/${videoId}`;
   const [isCopied, setIsCopied] = useState(false);
   const onCopy = async () => {
     await navigator.clipboard.writeText(fullUrl);

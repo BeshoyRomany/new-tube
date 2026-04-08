@@ -1,32 +1,34 @@
-"use client";
+'use client';
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { useAuth, useClerk } from "@clerk/nextjs";
-import { FlameIcon, HomeIcon, PlaySquareIcon } from "lucide-react";
-import Link from "next/link";
+} from '@/components/ui/sidebar';
+import { useAuth, useClerk } from '@clerk/nextjs';
+import { FlameIcon, HomeIcon, PlaySquareIcon } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const items = [
-  { title: "Home", url: "/", icon: HomeIcon },
+  { title: 'Home', url: '/', icon: HomeIcon },
   {
-    title: "Subscriptions",
-    url: "/feed/subscriptions",
+    title: 'Subscriptions',
+    url: '/feed/subscriptions',
     icon: PlaySquareIcon,
     auth: true,
   },
   {
-    title: "Trending",
-    url: "/feed/trending",
+    title: 'Trending',
+    url: '/feed/trending',
     icon: FlameIcon,
   },
 ];
 const MainSection = () => {
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
+  const pathname = usePathname();
   return (
     <SidebarGroup>
       <SidebarGroupContent>
@@ -36,7 +38,7 @@ const MainSection = () => {
               <SidebarMenuButton
                 tooltip={item.title}
                 asChild
-                isActive={false} //TODO: Change to look at current pathname
+                isActive={pathname === item.url}
                 onClick={(e) => {
                   if (!isSignedIn && item.auth) {
                     e.preventDefault();

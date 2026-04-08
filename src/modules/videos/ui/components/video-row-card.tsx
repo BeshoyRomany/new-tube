@@ -20,9 +20,9 @@ const videoRowCardVariants = cva('group flex min-w-0', {
       default: 'gap-4',
       compact: 'gap-2',
     },
-    defaultVarian: {
-      size: 'default',
-    },
+  },
+  defaultVariants: {
+    size: 'default',
   },
 });
 
@@ -44,7 +44,7 @@ interface VideoRowCardProps extends VariantProps<typeof videoRowCardVariants> {
 }
 
 export const VideoRowCardSkeleton = ({
-  size,
+  size = 'default',
 }: VariantProps<typeof videoRowCardVariants>) => {
   return (
     <div className={videoRowCardVariants({ size })}>
@@ -84,7 +84,11 @@ export const VideoRowCardSkeleton = ({
   );
 };
 
-export const VideoRowCard = ({ data, size, onRemove }: VideoRowCardProps) => {
+export const VideoRowCard = ({
+  data,
+  size = 'default',
+  onRemove,
+}: VideoRowCardProps) => {
   const compactViews = useMemo(() => {
     return Intl.NumberFormat('en', {
       notation: 'compact',

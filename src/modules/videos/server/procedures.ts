@@ -16,12 +16,268 @@ import {
   protectedProcedure,
 } from '@/trpc/init';
 import { TRPCError } from '@trpc/server';
-import { and, eq, getTableColumns, inArray, isNotNull } from 'drizzle-orm';
+import {
+  and,
+  desc,
+  eq,
+  getTableColumns,
+  inArray,
+  isNotNull,
+  lt,
+  or,
+} from 'drizzle-orm';
 import z from 'zod';
 import { workflow } from '@/lib/workflow';
+import { DEFAULT_LIMIT } from '@/constants';
 
 const utapi = new UTApi();
 export const videosRouter = createTRPCRouter({
+  getManySubscribed: protectedProcedure
+    .input(
+      z.object({
+        cursor: z
+          .object({ id: z.string(), updatedAt: z.coerce.date() })
+          .nullish(),
+        limit: z.number().min(1).max(100).default(DEFAULT_LIMIT),
+      })
+    ) //Inversion of Control (IoC)
+    .query(async ({ input, ctx }) => {
+      const { cursor, limit } = input;
+      const { id: userId } = ctx.user;
+
+      /*
+        Here im going to bring all the "subscriptions" for the "current viewer"
+        through getting the all the "creators" that the viewer subscribed in there channels.
+      */
+      const viewerSubscriptions = db.$with('viewer_subscriptions').as(
+        db
+          .select({
+            userId: subscriptions.creatorId,
+          })
+          .from(subscriptions)
+          .where(eq(subscriptions.viewerId, userId))
+      );
+
+      const data = await db
+        .with(viewerSubscriptions)
+        .select({
+          ...getTableColumns(videos),
+          user: users,
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, 'like')
+            )
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, 'dislike')
+            )
+          ),
+          viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
+        })
+        .from(videos)
+
+        /*
+          here when im trying to get all the users that they are uploaded the video
+          because after i have all i will filter all of them down based on (if they are exist in my subscriptions list or not)
+        */
+        .innerJoin(users, eq(videos.userId, users.id))
+        /* Here the main goal to get all the videos for the creators where the current viewer subscribed for their channels 
+          and join it to the query
+          so for example : the current user (viewer) subscribed for 
+          [creator1, creator2, creator3] -> the current viewer is a column in the same row
+          and now i have the creators. as a subscriptions that we gonna load all the videos from them (the creators videos)
+
+          and because we have innerJoin also with the users table
+          so we need to check and get the creator user if he exist already in the users table (mandatory to be exist)
+          because if he is not exist it means that his videos also cascaded (Deleted)
+
+          simply: this innerJoin like extra filter means. if this user not exist in my subscriptions list -> throw him out
+        */
+        .innerJoin(
+          viewerSubscriptions,
+          eq(viewerSubscriptions.userId, users.id)
+        )
+        .where(
+          and(
+            eq(videos.visibility, 'public'),
+            cursor
+              ? or(
+                  lt(videos.updatedAt, cursor.updatedAt),
+                  and(
+                    eq(videos.updatedAt, cursor.updatedAt),
+                    lt(videos.id, cursor.id)
+                  )
+                )
+              : undefined
+          )
+        )
+        .orderBy(desc(videos.updatedAt), desc(videos.id))
+        .limit(limit + 1);
+      const hasMore = data.length > limit;
+      // Remove the last item of there's more data
+      const items = hasMore ? data.slice(0, -1) : data;
+      //Set the next cursor to the last item if there is more data
+      const lastItem = items[items.length - 1];
+      const nextCursor = hasMore
+        ? { id: lastItem.id, updatedAt: lastItem.updatedAt }
+        : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  getTrending: baseProcedure
+    .input(
+      z.object({
+        cursor: z.object({ id: z.string(), viewCount: z.number() }).nullish(),
+        limit: z.number().min(1).max(100).default(DEFAULT_LIMIT),
+      })
+    ) //Inversion of Control (IoC)
+    .query(async ({ input }) => {
+      const { cursor, limit } = input;
+
+      /*
+        Here we getting the viewCount as a subquery from the viewCount table for each video
+        because we selecting from "videos"
+        so each video we selecting -> we need to count the total views where the viewCount.videoId == current video.id
+        
+        then we need to tell the cursor to get the most highest videos has views
+        so we will the cursor depend on the view count for each video
+
+        then we need to show the most heights videos at the beginning so we will orderBy the most highest views
+      */
+      const viewCountSubquery = db.$count(
+        videoViews,
+        eq(videoViews.videoId, videos.id)
+      );
+
+      const data = await db
+        .select({
+          ...getTableColumns(videos),
+          user: users,
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, 'like')
+            )
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, 'dislike')
+            )
+          ),
+          viewCount: viewCountSubquery,
+        })
+        .from(videos)
+        .innerJoin(users, eq(videos.userId, users.id))
+        .where(
+          and(
+            eq(videos.visibility, 'public'),
+            cursor
+              ? or(
+                  lt(viewCountSubquery, cursor.viewCount),
+                  and(
+                    eq(viewCountSubquery, cursor.viewCount),
+                    lt(videos.id, cursor.id)
+                  )
+                )
+              : undefined
+          )
+        )
+        .orderBy(desc(viewCountSubquery), desc(videos.id))
+        .limit(limit + 1);
+
+      const hasMore = data.length > limit;
+      // Remove the last item of there's more data
+      const items = hasMore ? data.slice(0, -1) : data;
+      //Set the next cursor to the last item if there is more data
+      const lastItem = items[items.length - 1];
+      const nextCursor = hasMore
+        ? { id: lastItem.id, viewCount: lastItem.viewCount }
+        : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
+  getMany: baseProcedure
+    .input(
+      z.object({
+        categoryId: z.uuid().nullish(),
+        cursor: z
+          .object({ id: z.string(), updatedAt: z.coerce.date() })
+          .nullish(),
+        limit: z.number().min(1).max(100).default(DEFAULT_LIMIT),
+      })
+    ) //Inversion of Control (IoC)
+    .query(async ({ input }) => {
+      const { cursor, limit, categoryId } = input;
+      const data = await db
+        .select({
+          ...getTableColumns(videos),
+          user: users,
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, 'like')
+            )
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, 'dislike')
+            )
+          ),
+          viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
+        })
+        .from(videos)
+        .innerJoin(users, eq(videos.userId, users.id))
+        .where(
+          and(
+            categoryId ? eq(videos.categoryId, categoryId) : undefined,
+            eq(videos.visibility, 'public'),
+            cursor
+              ? or(
+                  lt(videos.updatedAt, cursor.updatedAt),
+                  and(
+                    eq(videos.updatedAt, cursor.updatedAt),
+                    lt(videos.id, cursor.id)
+                  )
+                )
+              : undefined
+          )
+        )
+        .orderBy(desc(videos.updatedAt), desc(videos.id))
+        .limit(limit + 1);
+      const hasMore = data.length > limit;
+      // Remove the last item of there's more data
+      const items = hasMore ? data.slice(0, -1) : data;
+      //Set the next cursor to the last item if there is more data
+      const lastItem = items[items.length - 1];
+      const nextCursor = hasMore
+        ? { id: lastItem.id, updatedAt: lastItem.updatedAt }
+        : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
+
   getOne: baseProcedure
     .input(z.object({ id: z.uuid() }))
     .query(async ({ input, ctx }) => {

@@ -23,6 +23,7 @@ export const VideoThumbnail = ({
   previewUrl,
   duration,
 }: VideoThumbnailProps) => {
+  console.log(imageUrl);
   return (
     <div className="relative group">
       {/* Thumbnail wrapper */}
@@ -31,6 +32,7 @@ export const VideoThumbnail = ({
           src={imageUrl || THUMBNAIL_FALLBACK}
           alt={title}
           fill
+          unoptimized={true}
           className="object-cover w-full h-full group-hover:opacity-0"
         />
         <Image

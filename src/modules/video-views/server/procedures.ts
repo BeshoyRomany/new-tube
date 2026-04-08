@@ -19,7 +19,14 @@ export const videoViewsRouter = createTRPCRouter({
         );
 
       if (existingVideoView) {
-        return existingVideoView;
+        const [updatedView] = await db
+          .update(videoViews)
+          .set({ updatedAt: new Date() })
+          .where(
+            and(eq(videoViews.videoId, videoId), eq(videoViews.userId, userId))
+          )
+          .returning();
+        return updatedView;
       }
       const [createdVideoView] = await db
         .insert(videoViews)

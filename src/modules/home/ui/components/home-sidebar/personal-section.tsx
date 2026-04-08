@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -6,27 +6,28 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { useAuth, useClerk } from "@clerk/nextjs";
-import { HistoryIcon, ListVideoIcon, ThumbsUp } from "lucide-react";
-import Link from "next/link";
+} from '@/components/ui/sidebar';
+import { useAuth, useClerk } from '@clerk/nextjs';
+import { HistoryIcon, ListVideoIcon, ThumbsUp } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const items = [
   {
-    title: "History",
-    url: "/playlists/history",
+    title: 'History',
+    url: '/playlists/history',
     icon: HistoryIcon,
     auth: true,
   },
   {
-    title: "Liked videos",
-    url: "/playlists/liked",
+    title: 'Liked videos',
+    url: '/playlists/liked',
     icon: ThumbsUp,
     auth: true,
   },
   {
-    title: "All playlists",
-    url: "/playlists",
+    title: 'All playlists',
+    url: '/playlists',
     icon: ListVideoIcon,
     auth: true,
   },
@@ -34,6 +35,7 @@ const items = [
 const PersonalSection = () => {
   const { isSignedIn } = useAuth();
   const clerk = useClerk();
+  const pathname = usePathname();
   return (
     <SidebarGroup>
       <SidebarGroupLabel>You</SidebarGroupLabel>
@@ -44,7 +46,7 @@ const PersonalSection = () => {
               <SidebarMenuButton
                 tooltip={item.title}
                 asChild
-                isActive={false} //TODO: Change to look at current pathname
+                isActive={pathname === item.url}
                 onClick={(e) => {
                   if (!isSignedIn && item.auth) {
                     e.preventDefault();
