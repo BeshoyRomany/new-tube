@@ -1,4 +1,3 @@
-import page from '@/app/(home)/videos/[videoId]/page';
 import { DEFAULT_LIMIT } from '@/constants';
 import { trpc } from '@/trpc/client';
 import { CornerDownRightIcon, Loader2Icon } from 'lucide-react';

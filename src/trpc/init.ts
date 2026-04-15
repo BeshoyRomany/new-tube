@@ -34,22 +34,23 @@ export const baseProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(
   async function isAuthed(opts) {
     const { ctx } = opts;
-    // check if the user authorized
+
+    //Check the clerk current user
     if (!ctx.clerkUserId) throw new TRPCError({ code: 'UNAUTHORIZED' });
-    // check if the user in the database
+
+    //bulletproof layer to avid TOO_MANY_REQUESTS
+    const { success } = await ratelimit.limit(ctx.clerkUserId);
+    if (!success) throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
+
+    //Get the user from the DB if the limits was not too many
     const [user] = await db
       .select()
       .from(users)
       .where(eq(users.clerkId, ctx.clerkUserId))
       .limit(1);
-    if (!user) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
-    // Check the request limits -> we can move this up using clerkUserId
-    const { success } = await ratelimit.limit(user.id);
-    if (!success) throw new TRPCError({ code: 'TOO_MANY_REQUESTS' });
 
-    //If pass all Middlewares -> next
+    if (!user) throw new TRPCError({ code: 'UNAUTHORIZED' });
+
     return opts.next({
       ctx: { ...ctx, user },
     });

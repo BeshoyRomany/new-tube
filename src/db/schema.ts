@@ -1,4 +1,5 @@
 // import { relations } from "drizzle-orm";
+import { id } from 'date-fns/locale';
 import { relations } from 'drizzle-orm';
 import {
   index,
@@ -54,6 +55,8 @@ export const userRelations = relations(users, ({ many }) => ({
   comments: many(comments),
   //one user has many comment reactions
   commentReactions: many(commentReactions),
+  //one user has many playlists
+  playlists: many(playlists),
 }));
 
 export const usersSelectSchema = createSelectSchema(users);
@@ -174,6 +177,8 @@ export const videoRelations = relations(videos, ({ one, many }) => ({
   views: many(videoViews),
   reactions: many(videoReactions),
   comments: many(comments),
+  //one video can be exist in many playlistVideos rows ->
+  playlistVideos: many(playlistVideos),
 }));
 
 //************* Comments table *************//
@@ -342,3 +347,62 @@ export const videoReactionRelations = relations(videoReactions, ({ one }) => ({
 export const videoReactionsSelectSchema = createSelectSchema(videoReactions);
 export const videoReactionsInsertSchema = createInsertSchema(videoReactions);
 export const videoReactionsUpdateSchema = createUpdateSchema(videoReactions);
+
+//************* Playlists table *************//
+export const playlists = pgTable(
+  'playlists',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    description: text('description'),
+    userId: uuid('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [index('playlists_user_id_name_idx').on(t.userId, t.name)]
+);
+
+export const playlistRelations = relations(playlists, ({ one, many }) => ({
+  user: one(users, {
+    fields: [playlists.userId],
+    references: [users.id],
+  }),
+  playlistVideos: many(playlistVideos),
+}));
+
+//************* Playlist Videos table (one video & one playlist per row)*************//
+export const playlistVideos = pgTable(
+  'playlist_videos',
+  {
+    playlistId: uuid('playlist_id')
+      .references(() => playlists.id, {
+        onDelete: 'cascade',
+      })
+      .notNull(),
+    videoId: uuid('video_id')
+      .references(() => videos.id, {
+        onDelete: 'cascade',
+      })
+      .notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => [
+    primaryKey({
+      columns: [t.playlistId, t.videoId],
+    }),
+  ]
+);
+
+export const playListVideosRelations = relations(playlistVideos, ({ one }) => ({
+  playlist: one(playlists, {
+    fields: [playlistVideos.playlistId],
+    references: [playlists.id],
+  }),
+  video: one(videos, {
+    fields: [playlistVideos.videoId],
+    references: [videos.id],
+  }),
+}));
