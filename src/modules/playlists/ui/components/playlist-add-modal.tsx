@@ -41,7 +41,8 @@ export const PlaylistAddModal = ({
       toast.success(`Video added to ${data.playlistName}`);
       utils.playlists.getMany.invalidate();
       utils.playlists.getManyForVideo.invalidate({ videoId });
-      //TODO: invalidate playlists.getOne
+      utils.playlists.getOne.invalidate({ id: data.id });
+      utils.playlists.getVideos.invalidate({ playlistId: data.id });
     },
     onError: () => {
       toast.error('Something went wrong');
@@ -52,7 +53,8 @@ export const PlaylistAddModal = ({
       toast.success(`Video removed from ${data.playlistName}`);
       utils.playlists.getMany.invalidate();
       utils.playlists.getManyForVideo.invalidate({ videoId });
-      //TODO: invalidate playlists.getOne
+      utils.playlists.getOne.invalidate({ id: data.id });
+      utils.playlists.getVideos.invalidate({ playlistId: data.id });
     },
     onError: () => {
       toast.error('Something went wrong');
@@ -64,7 +66,7 @@ export const PlaylistAddModal = ({
       open={open}
       onOpenChange={onOpenChange}
     >
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col ">
         {isLoading && (
           <div className="flex justify-center p-4">
             <Loader2Icon className="size-5 animate-spin text-muted-foreground" />

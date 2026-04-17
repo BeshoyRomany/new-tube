@@ -8,13 +8,144 @@ import {
   videos,
   videoViews,
 } from '@/db/schema';
-import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
+import {
+  baseProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+} from '@/trpc/init';
 import { TRPCError } from '@trpc/server';
 import { and, desc, eq, getTableColumns, lt, or, sql } from 'drizzle-orm';
 import z from 'zod';
 
 export const PlaylistsRouter = createTRPCRouter({
-  //Super security
+  remove: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .mutation(async ({ input, ctx }) => {
+      const { id } = input;
+      const { id: userId } = ctx.user;
+
+      const [deletedPlaylist] = await db
+        .delete(playlists)
+        .where(and(eq(playlists.id, id), eq(playlists.userId, userId)))
+        .returning();
+
+      if (!deletedPlaylist) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      return deletedPlaylist;
+    }),
+  //Get the playlist by id
+  getOne: protectedProcedure
+    .input(z.object({ id: z.uuid() }))
+    .query(async ({ input, ctx }) => {
+      const { id } = input;
+      const { id: userId } = ctx.user;
+
+      const [existingPlaylist] = await db
+        .select()
+        .from(playlists)
+        .where(and(eq(playlists.id, id), eq(playlists.userId, userId)));
+
+      if (!existingPlaylist) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      return existingPlaylist;
+    }),
+  //Load the playlists videos
+  getVideos: protectedProcedure
+    .input(
+      z.object({
+        playlistId: z.uuid(),
+        cursor: z
+          .object({ id: z.uuid(), updatedAt: z.coerce.date() })
+          .nullish(),
+        limit: z.number().min(1).max(100).default(DEFAULT_LIMIT),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { id: userId } = ctx.user;
+      const { cursor, limit, playlistId } = input;
+
+      const [existingPlaylist] = await db
+        .select()
+        .from(playlists)
+        .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
+      if (!existingPlaylist) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      //Here i got all the playlistVideos for the (current playlist)
+      const videosFromPlayList = db.$with('playlist_videos').as(
+        db
+          .select({
+            videoId: playlistVideos.videoId,
+          })
+          .from(playlistVideos)
+          .where(eq(playlistVideos.playlistId, playlistId))
+      );
+
+      const data = await db
+        .with(videosFromPlayList)
+        .select({
+          ...getTableColumns(videos),
+          user: users,
+          likeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, 'like')
+            )
+          ),
+          dislikeCount: db.$count(
+            videoReactions,
+            and(
+              eq(videoReactions.videoId, videos.id),
+              eq(videoReactions.type, 'dislike')
+            )
+          ),
+          viewCount: db.$count(videoViews, eq(videoViews.videoId, videos.id)),
+        })
+        .from(videos)
+        //Join the owners of the videos -> when im querying "videos"
+        .innerJoin(users, eq(videos.userId, users.id))
+        //Join the videoIds from  "videosFromPlayList" only the rows that has the same videoId ->  when im querying "videos"
+        //Because we need to "get only" the videos that has the same id from the videos table
+        //videosFromPlayList CTE means -> get the videos only that inside specific playlist as we did in the CTE UP
+        .innerJoin(
+          videosFromPlayList,
+          eq(videosFromPlayList.videoId, videos.id)
+        )
+        .where(
+          and(
+            eq(videos.visibility, 'public'),
+            /*
+              Here the cursor should filter based on the (viewedAt) after we joined the viewerVideoViews as CTE with videos table
+              because this is now connected with (updatedAt)
+              because we updated the the property (updatedAt) each time we visited the video with date.now()
+            */
+            cursor
+              ? or(
+                  lt(videos.updatedAt, cursor.updatedAt),
+                  and(
+                    eq(videos.updatedAt, cursor.updatedAt),
+                    lt(videos.id, cursor.id)
+                  )
+                )
+              : undefined
+          )
+        )
+        .orderBy(desc(videos.updatedAt), desc(videos.id))
+        .limit(limit + 1);
+      const hasMore = data.length > limit;
+      // Remove the last item of there's more data
+      const items = hasMore ? data.slice(0, -1) : data;
+      //Set the next cursor to the last item if there is more data
+      const lastItem = items[items.length - 1];
+      const nextCursor = hasMore
+        ? { id: lastItem.id, updatedAt: lastItem.updatedAt }
+        : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
   deleteVideo: protectedProcedure
     .input(z.object({ playlistId: z.uuid(), videoId: z.uuid() }))
     .mutation(async ({ input, ctx }) => {
@@ -24,8 +155,7 @@ export const PlaylistsRouter = createTRPCRouter({
       const [existingPlaylist] = await db
         .select()
         .from(playlists)
-        .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)))
-        .for('update'); //Book this row to not let anyone delete it during the db.transaction finished.
+        .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
 
       if (!existingPlaylist) throw new TRPCError({ code: 'NOT_FOUND' });
 
@@ -71,13 +201,12 @@ export const PlaylistsRouter = createTRPCRouter({
           code: 'NOT_FOUND',
         });
       }
-
       return {
         id: deletedPlaylistVideo.playlistId,
+        videoId: deletedPlaylistVideo.videoId,
         playlistName: existingPlaylist.name,
       };
     }),
-  // Super security
   addVideo: protectedProcedure
     .input(z.object({ playlistId: z.uuid(), videoId: z.uuid() }))
     .mutation(async ({ input, ctx }) => {
@@ -87,8 +216,7 @@ export const PlaylistsRouter = createTRPCRouter({
       const [existingPlaylist] = await db
         .select()
         .from(playlists)
-        .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)))
-        .for('update'); //Book this row to not let anyone delete it during the db.transaction finished.
+        .where(and(eq(playlists.id, playlistId), eq(playlists.userId, userId)));
 
       if (!existingPlaylist) throw new TRPCError({ code: 'NOT_FOUND' });
 

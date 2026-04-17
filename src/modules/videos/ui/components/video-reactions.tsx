@@ -25,6 +25,7 @@ export const VideoReactions = ({
     onSuccess: () => {
       utils.videos.getOne.invalidate({ id: videoId });
       utils.playlists.getLiked.invalidate();
+      utils.studio.getMany.invalidate();
     },
     onError: (error) => {
       if (error.data?.code === 'UNAUTHORIZED') {
@@ -38,6 +39,7 @@ export const VideoReactions = ({
     onSuccess: () => {
       utils.videos.getOne.invalidate({ id: videoId });
       utils.playlists.getLiked.invalidate();
+      utils.studio.getMany.invalidate();
     },
     onError: (error) => {
       if (error.data?.code === 'UNAUTHORIZED') {

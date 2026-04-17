@@ -52,6 +52,7 @@ export const CommentItem = ({
   const remove = trpc.comments.remove.useMutation({
     onSuccess: () => {
       utils.comments.getMany.invalidate({ videoId: comment.videoId });
+      utils.studio.getMany.invalidate();
       toast.success('Comment deleted');
     },
     onError: (error) => {

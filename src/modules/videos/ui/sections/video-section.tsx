@@ -42,6 +42,7 @@ export const VideoSectionSuspense = ({ videoId }: VideoSectionProps) => {
     onSuccess: () => {
       utils.videos.getOne.invalidate({ id: videoId });
       utils.playlists.getHistory.invalidate();
+      utils.studio.getMany.invalidate();
     },
   });
 
