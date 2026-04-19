@@ -3,11 +3,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { UserAvatar } from "@/components/user-avatar";
-import { useUser } from "@clerk/nextjs";
-import Link from "next/link";
+} from '@/components/ui/sidebar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { UserAvatar } from '@/components/user-avatar';
+import { useUser } from '@clerk/nextjs';
+import Link from 'next/link';
 
 const StudioSidebarHeader = () => {
   new Promise((res) => setTimeout(res, 3000));
@@ -24,7 +24,7 @@ const StudioSidebarHeader = () => {
       </SidebarHeader>
     );
   }
-  if (state === "collapsed") {
+  if (state === 'collapsed') {
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
@@ -35,8 +35,8 @@ const StudioSidebarHeader = () => {
           <Link href="/users/current">
             <UserAvatar
               imageUrl={user.imageUrl}
-              name={user.fullName || "User"}
-              size={"sm"}
+              name={user.fullName || 'User'}
+              size={'sm'}
             />
           </Link>
         </SidebarMenuButton>
@@ -45,12 +45,11 @@ const StudioSidebarHeader = () => {
   }
   return (
     <SidebarHeader className="flex items-center justify-center pb-4">
-      <Link href="/user/current">
+      <Link href="/users/current">
         <UserAvatar
           imageUrl={user.imageUrl}
-          name={user.fullName || "User"}
+          name={user.fullName || 'User'}
           className="size-[112px] hover:opacity-80 transition-opacity"
-          onClick={() => alert("user clicked")}
         />
       </Link>
       <div className="flex flex-col items-center mt-2 gap-y-1">

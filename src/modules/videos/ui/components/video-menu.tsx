@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { APP_URL } from '@/constants';
 import { PlaylistAddModal } from '@/modules/playlists/ui/components/playlist-add-modal';
+import { useAuth, useClerk } from '@clerk/nextjs';
 import {
   ListPlusIcon,
   MoreVerticalIcon,
@@ -29,7 +30,8 @@ export const VideoMenu = ({
 }: VideoMenuProps) => {
   const [isOpenPlaylistAddModal, setIsOpenPlaylistAddModal] =
     useState<boolean>(false);
-
+  const { userId } = useAuth();
+  const clerk = useClerk();
   const onShare = () => {
     const fullUrl = `${APP_URL}/videos/${videoId}`;
     navigator.clipboard.writeText(fullUrl);
@@ -53,10 +55,20 @@ export const VideoMenu = ({
             <ShareIcon className="mr-2 size-4" />
             Share
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsOpenPlaylistAddModal(true)}>
+
+          <DropdownMenuItem
+            onClick={() => {
+              if (!userId) {
+                clerk.openSignIn();
+                return;
+              }
+              setIsOpenPlaylistAddModal(true);
+            }}
+          >
             <ListPlusIcon className="mr-2 size-4" />
             Add to playlist
           </DropdownMenuItem>
+
           {onRemove && (
             <DropdownMenuItem onClick={onRemove}>
               <Trash2Icon className="mr-2 size-4" />

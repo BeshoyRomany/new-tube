@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { Button } from "@/components/ui/button";
-import { ClapperboardIcon, UserCircleIcon } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { ClapperboardIcon, UserCircleIcon, UserIcon } from 'lucide-react';
 import {
   UserButton,
   SignInButton,
@@ -9,8 +9,8 @@ import {
   SignedOut,
   ClerkLoading,
   ClerkLoaded,
-} from "@clerk/nextjs";
-import { Skeleton } from "@/components/ui/skeleton";
+} from '@clerk/nextjs';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const AuthButton = () => {
   return (
@@ -23,6 +23,11 @@ const AuthButton = () => {
         <SignedIn>
           <UserButton>
             <UserButton.MenuItems>
+              <UserButton.Link
+                label="My profile"
+                href="/users/current"
+                labelIcon={<UserIcon className="size-4" />}
+              />
               <UserButton.Link
                 label="Studio"
                 href="/studio"

@@ -25,6 +25,7 @@ import {
   isNotNull,
   lt,
   or,
+  sql,
 } from 'drizzle-orm';
 import z from 'zod';
 import { workflow } from '@/lib/workflow';
@@ -216,14 +217,22 @@ export const videosRouter = createTRPCRouter({
     .input(
       z.object({
         categoryId: z.uuid().nullish(),
+        userId: z.uuid().nullish(),
         cursor: z
           .object({ id: z.string(), updatedAt: z.coerce.date() })
           .nullish(),
         limit: z.number().min(1).max(100).default(DEFAULT_LIMIT),
       })
     ) //Inversion of Control (IoC)
-    .query(async ({ input }) => {
-      const { cursor, limit, categoryId } = input;
+    .query(async ({ input, ctx }) => {
+      const { cursor, limit, categoryId, userId } = input;
+      const { clerkUserId } = ctx;
+
+      const [viewer] = await db
+        .select()
+        .from(users)
+        .where(inArray(users.clerkId, clerkUserId ? [clerkUserId] : []));
+
       const data = await db
         .select({
           ...getTableColumns(videos),
@@ -248,8 +257,17 @@ export const videosRouter = createTRPCRouter({
         .innerJoin(users, eq(videos.userId, users.id))
         .where(
           and(
+            userId ? eq(videos.userId, userId) : undefined,
             categoryId ? eq(videos.categoryId, categoryId) : undefined,
             eq(videos.visibility, 'public'),
+
+            // this below code is for the case when the viewer is the owner of the video so he can see his private videos also
+            // when the visibility is private we need to check if the viewer is the owner of the video or not if he is the owner he can see it even if it's private but if he is not the owner he can't see it because it's private
+
+            // or(
+            //   eq(videos.visibility, 'public'),
+            //   viewer ? eq(videos.userId, viewer.id) : sql`false`
+            // ),
             cursor
               ? or(
                   lt(videos.updatedAt, cursor.updatedAt),
