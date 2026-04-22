@@ -38,7 +38,7 @@ export const POST = async (req: Request) => {
       { 'mux-signature': muxSignature },
       SIGNING_SECRET
     );
-  } catch (err) {
+  } catch {
     return new Response('Invalid signature', { status: 400 });
   }
 

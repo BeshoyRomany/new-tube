@@ -35,7 +35,6 @@ export const ThumbnailGenerateModal = ({
       prompt: '',
     },
   });
-  const utils = trpc.useUtils();
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     generateThumbnail.mutate({
       id: videoId,

@@ -25,7 +25,7 @@ interface CommentsFormProps {
   variant?: 'comment' | 'reply';
 }
 
-const commentFormSchema = commentInsertSchema.omit({ userId: true });
+export const commentFormSchema = commentInsertSchema.omit({ userId: true });
 type CommentFormValues = z.infer<typeof commentFormSchema>;
 
 export const CommentForm = ({

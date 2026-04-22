@@ -1,5 +1,3 @@
-// import { relations } from "drizzle-orm";
-import { id } from 'date-fns/locale';
 import { relations } from 'drizzle-orm';
 import {
   index,
@@ -18,8 +16,6 @@ import {
   createSelectSchema,
   createUpdateSchema,
 } from 'drizzle-zod';
-import { comment } from 'postcss';
-
 export const reactionType = pgEnum('reaction_type', ['like', 'dislike']);
 
 //************* Users table *************//

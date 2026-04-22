@@ -26,7 +26,7 @@ export const SuggestionsSection = ({
   return (
     <Suspense fallback={<SuggestionsSectionSkeleton />}>
       <ErrorBoundary fallback={<p>Error ...</p>}>
-        <SuggestionsSectionSuspense videoId={videoId} isManual />
+        <SuggestionsSectionSuspense videoId={videoId} isManual={isManual} />
       </ErrorBoundary>
     </Suspense>
   );

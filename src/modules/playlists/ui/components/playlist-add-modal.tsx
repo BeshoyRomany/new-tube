@@ -81,9 +81,11 @@ export const PlaylistAddModal = ({
               className="w-full justify-start px-2 [&_svg]:size-5"
               size="lg"
               onClick={() => {
-                playlist.containsVideo
-                  ? removeVideo.mutate({ videoId, playlistId: playlist.id })
-                  : addVideo.mutate({ videoId, playlistId: playlist.id });
+                if (playlist.containsVideo) {
+                  removeVideo.mutate({ videoId, playlistId: playlist.id });
+                } else {
+                  addVideo.mutate({ videoId, playlistId: playlist.id });
+                }
               }}
               disabled={removeVideo.isPending || addVideo.isPending}
             >

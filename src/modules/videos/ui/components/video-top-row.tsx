@@ -5,7 +5,6 @@ import { VideoDescription } from './video-description';
 import { VideoMenu } from './video-menu';
 import { VideoOwner } from './video-owner';
 import { VideoReactions } from './video-reactions';
-import { videos } from '@/db/schema';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface VideoTopRowProps {

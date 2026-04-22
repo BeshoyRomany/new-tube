@@ -10,7 +10,6 @@ import {
   isNull,
   lt,
   or,
-  sql,
 } from 'drizzle-orm';
 import z, { uuid } from 'zod';
 import {
@@ -27,8 +26,6 @@ import {
 } from '@/trpc/init';
 import { DEFAULT_LIMIT } from '@/constants';
 import { TRPCError } from '@trpc/server';
-import { comment } from 'postcss';
-
 export const commentsRouter = createTRPCRouter({
   remove: protectedProcedure
     .input(z.object({ id: uuid() }))

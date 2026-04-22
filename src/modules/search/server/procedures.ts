@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { users, videoReactions, videos, videoViews } from '@/db/schema';
 import { baseProcedure, createTRPCRouter } from '@/trpc/init';
 import { eq, and, or, lt, desc, ilike, getTableColumns } from 'drizzle-orm';
-import { TRPCError } from '@trpc/server';
 import { DEFAULT_LIMIT } from '@/constants';
 
 export const searchRouter = createTRPCRouter({

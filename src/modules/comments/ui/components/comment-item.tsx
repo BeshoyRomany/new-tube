@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import {
   ChevronDownIcon,
-  ChevronUp,
   ChevronUpIcon,
   Edit2Icon,
   MessageSquareIcon,
@@ -9,7 +8,6 @@ import {
   ThumbsDownIcon,
   ThumbsUpIcon,
   Trash2Icon,
-  Video,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -28,7 +26,6 @@ import { useAuth, useClerk } from '@clerk/clerk-react';
 import { useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { error } from 'console';
 import { CommentForm } from './comments-form';
 import { CommentReplies } from './comment-replies';
 

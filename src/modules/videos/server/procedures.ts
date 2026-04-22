@@ -1,6 +1,5 @@
 import { db } from '@/db';
 import {
-  categories,
   subscriptions,
   users,
   videoReactions,
@@ -25,7 +24,6 @@ import {
   isNotNull,
   lt,
   or,
-  sql,
 } from 'drizzle-orm';
 import z from 'zod';
 import { workflow } from '@/lib/workflow';
@@ -224,14 +222,8 @@ export const videosRouter = createTRPCRouter({
         limit: z.number().min(1).max(100).default(DEFAULT_LIMIT),
       })
     ) //Inversion of Control (IoC)
-    .query(async ({ input, ctx }) => {
+    .query(async ({ input }) => {
       const { cursor, limit, categoryId, userId } = input;
-      const { clerkUserId } = ctx;
-
-      const [viewer] = await db
-        .select()
-        .from(users)
-        .where(inArray(users.clerkId, clerkUserId ? [clerkUserId] : []));
 
       const data = await db
         .select({

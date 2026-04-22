@@ -14,9 +14,6 @@ import { trpc } from '@/trpc/client';
 import { ListIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Suspense } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-
 const LoadingSkeleton = () => {
   return (
     <>

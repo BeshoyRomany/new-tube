@@ -1,17 +1,17 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import MuxUploader, {
   MuxUploaderDrop,
   MuxUploaderFileSelect,
   MuxUploaderProgress,
   MuxUploaderStatus,
-} from "@mux/mux-uploader-react";
-import { BoxSelectIcon, PointerIcon, UploadIcon } from "lucide-react";
+} from '@mux/mux-uploader-react';
+import { UploadIcon } from 'lucide-react';
 interface StudioUploaderProps {
   endpoint?: string | null;
   onSuccess: () => void;
 }
 
-const UPLOADER_ID = "video-uploader";
+const UPLOADER_ID = 'video-uploader';
 export const StudioUploader = ({
   endpoint,
   onSuccess,

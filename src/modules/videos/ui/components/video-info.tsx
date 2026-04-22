@@ -3,7 +3,6 @@ import { formatDistanceToNow } from 'date-fns';
 import { VideoGetManyOutput } from '../../types';
 import Link from 'next/link';
 import { UserAvatar } from '@/components/user-avatar';
-import { User, Video } from 'lucide-react';
 import { UserInfo } from '@/modules/users/ui/components/user-info';
 import { VideoMenu } from './video-menu';
 import { Skeleton } from '@/components/ui/skeleton';

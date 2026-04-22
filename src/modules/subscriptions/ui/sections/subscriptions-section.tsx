@@ -52,7 +52,7 @@ export const SubscriptionsSectionSuspense = () => {
       //invalidate the subscription list to update the viewer's list of subscriptions
       utils.subscriptions.getMany.invalidate();
     },
-    onError: (error) => {
+    onError: () => {
       toast.error('Something went wrong!');
     },
   });

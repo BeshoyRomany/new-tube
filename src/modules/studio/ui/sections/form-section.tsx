@@ -31,7 +31,6 @@ import {
   FormControl,
   FormField,
   FormLabel,
-  FormMessage,
   FormItem,
 } from '@/components/ui/form';
 import {
@@ -60,6 +59,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { APP_URL } from '@/constants';
+import { VideoUpdatePayload } from '@/modules/users/types';
 interface FormSectionProps {
   videoId: string;
 }
@@ -156,10 +156,11 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
   usePusher({
     channelName: `video-${videoId}`,
     eventName: 'video-updated',
-    callback: (data) => {
+    callback: (data: unknown) => {
+      const payload = data as VideoUpdatePayload;
       utils.studio.getOne.invalidate({ id: videoId });
 
-      switch (data.type) {
+      switch (payload.type) {
         case 'THUMBNAIL':
           toast.success('Thumbnail generated successfully by AI! ✨');
           break;
@@ -179,7 +180,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
           toast.error('Video processing failed ❌');
           break;
         default:
-          null;
+          break;
       }
     },
   });

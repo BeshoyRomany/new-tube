@@ -4,7 +4,7 @@ import PusherClient from 'pusher-js';
 interface PusherClientProps {
   channelName: string;
   eventName: string;
-  callback: (data: any) => void;
+  callback: (data: unknown) => void;
 }
 export const usePusher = ({
   channelName,
