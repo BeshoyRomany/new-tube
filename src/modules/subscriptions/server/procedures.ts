@@ -1,11 +1,71 @@
+import { DEFAULT_LIMIT } from '@/constants';
 import { db } from '@/db';
-import { subscriptions } from '@/db/schema';
+import { subscriptions, users } from '@/db/schema';
 import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
 import { TRPCError } from '@trpc/server';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, lt, or } from 'drizzle-orm';
 import z from 'zod';
 
 export const subscriptionsRouter = createTRPCRouter({
+  getMany: protectedProcedure
+    .input(
+      z.object({
+        cursor: z
+          .object({ creatorId: z.string(), updatedAt: z.coerce.date() })
+          .nullish(),
+        limit: z.number().min(1).max(100).default(DEFAULT_LIMIT),
+      })
+    ) //Inversion of Control (IoC)
+    .query(async ({ input, ctx }) => {
+      const { cursor, limit } = input;
+      const { id: userId } = ctx.user;
+
+      const data = await db
+        .select({
+          ...getTableColumns(subscriptions),
+          user: {
+            ...getTableColumns(users),
+            //Get the subscriber count for each creator by counting the number of subscriptions where the creatorId matches the user's id from the users table after joining the subscriptions table with the users table.
+            subscriberCount: db.$count(
+              subscriptions,
+              eq(subscriptions.creatorId, users.id)
+            ),
+          },
+        })
+        .from(subscriptions)
+        //Join the users table to get the creator's information for each subscription where the viewerId is the current logged in user.
+        .innerJoin(users, eq(users.id, subscriptions.creatorId))
+        .where(
+          and(
+            //Make sure that the viewerId is the current logged in user because we want to get the subscriptions of the current logged in user
+            eq(subscriptions.viewerId, userId),
+            cursor
+              ? or(
+                  lt(subscriptions.updatedAt, cursor.updatedAt),
+                  and(
+                    eq(subscriptions.updatedAt, cursor.updatedAt),
+                    lt(subscriptions.creatorId, cursor.creatorId)
+                  )
+                )
+              : undefined
+          )
+        )
+        .orderBy(desc(subscriptions.updatedAt), desc(subscriptions.creatorId))
+        .limit(limit + 1);
+      const hasMore = data.length > limit;
+      // Remove the last item of there's more data
+      const items = hasMore ? data.slice(0, -1) : data;
+      //Set the next cursor to the last item if there is more data
+      const lastItem = items[items.length - 1];
+      const nextCursor = hasMore
+        ? { creatorId: lastItem.creatorId, updatedAt: lastItem.updatedAt }
+        : null;
+
+      return {
+        items,
+        nextCursor,
+      };
+    }),
   create: protectedProcedure
     .input(z.object({ userId: z.uuid() }))
     .mutation(async ({ input, ctx }) => {

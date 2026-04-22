@@ -1,7 +1,6 @@
 import { db } from '@/db';
 import { users, videos } from '@/db/schema';
 import { auth } from '@clerk/nextjs/server';
-import { TRPCError } from '@trpc/server';
 import { and, eq } from 'drizzle-orm';
 import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { UploadThingError, UTApi } from 'uploadthing/server';
@@ -10,6 +9,48 @@ import z from 'zod';
 const f = createUploadthing();
 const utapi = new UTApi();
 export const ourFileRouter = {
+  bannerUploader: f({
+    image: {
+      maxFileSize: '4MB',
+      maxFileCount: 1,
+    },
+  })
+    .middleware(async () => {
+      const { userId: clerkUserId } = await auth();
+
+      if (!clerkUserId) throw new UploadThingError('Unauthorized');
+
+      const [existingUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.clerkId, clerkUserId));
+
+      if (!existingUser) throw new UploadThingError('Unauthorized');
+
+      if (existingUser.bannerKey) {
+        try {
+          await utapi.deleteFiles(existingUser.bannerKey);
+        } catch (e) {
+          console.error('Failed to delete old banner', e);
+        }
+        await db
+          .update(users)
+          .set({ bannerKey: null, bannerUrl: null })
+          .where(and(eq(users.id, existingUser.id)));
+      }
+      return { userId: existingUser.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      await db
+        .update(users)
+        .set({
+          bannerUrl: file.url,
+          bannerKey: file.key,
+        })
+        .where(and(eq(users.id, metadata.userId)));
+      return { uploadedBy: metadata.userId };
+    }),
+
   thumbnailUploader: f({
     image: {
       maxFileSize: '4MB',

@@ -1,8 +1,8 @@
-import { SidebarTrigger } from "@/components/ui/sidebar";
-import Image from "next/image";
-import Link from "next/link";
-import AuthButton from "@/modules/auth/ui/components/auth-button";
-import { StudioUploadModal } from "../studio-upload-modal";
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import Image from 'next/image';
+import Link from 'next/link';
+import AuthButton from '@/modules/auth/ui/components/auth-button';
+import { StudioUploadModal } from '../studio-upload-modal';
 
 const StudioNavbar = () => {
   return (
@@ -11,7 +11,7 @@ const StudioNavbar = () => {
         {/* Menu and Logo */}
         <div className="flex items-center flex-shrink-0">
           <SidebarTrigger />
-          <Link href="/studio">
+          <Link prefetch href="/studio" className="hidden md:block">
             <div className="p-4 flex items-center gap-1">
               <Image src="/logo.svg" alt="logo" height={32} width={32} />
               <p className="text-xl font-semibold tracking-tight">Studio </p>
