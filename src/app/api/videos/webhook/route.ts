@@ -79,6 +79,14 @@ export const POST = async (req: Request) => {
       // 1. Primary check (handles 99% of duplicate requests):
       // Read the DB first. If muxPlaybackId is ALREADY filled by a previous request,
       // exit immediately to prevent any unnecessary file uploads to UploadThing.
+
+      //Note
+      //#region Mux Webhook Handler
+      // DB Science Note:
+      // - (UPDATE + Upload): UPDATE acquires a RowExclusiveLock. Holding it during a long upload causes an "idle-in-transaction" timeout.
+      // - (SELECT + Upload): Standard SELECT is non-blocking (MVCC) and leaves NO locks. The long upload runs safely without touching the DB connection.
+      // The Flow: Lock-free SELECT check -> 2. Heavy Upload -> 3. Fast Atomic UPDATE.
+      //#endregion
       const [existingVideo] = await db
         .select()
         .from(videos)
