@@ -4,9 +4,7 @@
 
 # 📺 NewTube
 
-**A full-stack, YouTube-style video streaming platform**
-
-Real-time video processing, AI-generated metadata, and a complete creator studio.
+**Real-time video processing, AI-generated metadata, and a complete creator studio.**
 
 <p>
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" />
