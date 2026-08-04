@@ -191,9 +191,13 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
 
   // update
   const update = trpc.videos.update.useMutation({
-    onSuccess: () => {
-      utils.studio.getMany.invalidate();
-      utils.studio.getOne.invalidate({ id: videoId });
+    onSuccess: async () => {
+      // Wait until the cache is officially invalidated and refetched
+      await Promise.all([
+        utils.studio.getMany.invalidate(),
+        utils.studio.getOne.invalidate({ id: videoId }),
+      ]);
+
       toast.success('Video updated');
     },
     onError: () => {

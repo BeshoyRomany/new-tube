@@ -56,7 +56,7 @@ export const ThumbnailGenerateModal = ({
   });
   return (
     <ResponsiveModal
-      title="Upload a thumbnail"
+      title="Generate Thumbnail"
       open={open}
       onOpenChange={onOpenChange}
     >
