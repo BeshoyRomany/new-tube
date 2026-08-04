@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { headers } from 'next/headers';
 import {
   VideoAssetCreatedWebhookEvent,
@@ -11,7 +11,7 @@ import { mux } from '@/lib/mux';
 import { db } from '@/db';
 import { videos } from '@/db/schema';
 import { UTApi } from 'uploadthing/server';
-import { pusherServer } from '@/lib/pusher'; // تأكد من المسار
+import { pusherServer } from '@/lib/pusher';
 
 type WebhookEvent =
   | VideoAssetCreatedWebhookEvent
@@ -72,13 +72,30 @@ export const POST = async (req: Request) => {
     case 'video.asset.ready': {
       const data = payload.data as VideoAssetReadyWebhookEvent['data'];
       const playbackId = data.playback_ids?.[0]?.id;
+
       if (!playbackId || !data.upload_id)
         return new Response('Missing Required Data', { status: 400 });
 
-      const tempThumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`;
-      const tempTPreviewUrl = `https://image.mux.com/${playbackId}/animated.gif`;
-      const duration = data.duration ? Math.round(data.duration) : 0;
+      // 1. Primary check (handles 99% of duplicate requests):
+      // Read the DB first. If muxPlaybackId is ALREADY filled by a previous request,
+      // exit immediately to prevent any unnecessary file uploads to UploadThing.
+      const [existingVideo] = await db
+        .select()
+        .from(videos)
+        .where(eq(videos.muxUploadId, data.upload_id))
+        .limit(1);
 
+      if (!existingVideo || existingVideo.muxPlaybackId) {
+        return new Response('Already processed or missing record', {
+          status: 200,
+        });
+      }
+
+      const duration = data.duration ? Math.round(data.duration) : 0;
+      const tempThumbnailUrl = `https://image.mux.com/${playbackId}/thumbnail.jpg`; //prepare mux url to upload on uploadThing
+      const tempTPreviewUrl = `https://image.mux.com/${playbackId}/animated.gif`; //prepare mux url to upload on uploadThing
+
+      // 2. Upload images to UploadThing (performed first to avoid keeping the DB connection open during long uploads).
       const utapi = new UTApi();
       const [uploadedThumbnail, uploadedPreview] =
         await utapi.uploadFilesFromUrl([tempThumbnailUrl, tempTPreviewUrl]);
@@ -89,20 +106,38 @@ export const POST = async (req: Request) => {
       const { key: thumbnailKey, url: thumbnailUrl } = uploadedThumbnail.data;
       const { key: previewKey, url: previewUrl } = uploadedPreview.data;
 
+      // 3. Single Atomic Update:
+      // Update the record ONLY IF muxPlaybackId is STILL NULL.
+      // This guarantees that only ONE request wins and updates the database.
+      // No request Edit before
       const [updatedVideo] = await db
         .update(videos)
         .set({
           muxStatus: data.status,
           muxPlaybackId: playbackId,
           muxAssetId: data.id,
+          duration: duration,
           thumbnailUrl,
           thumbnailKey,
           previewUrl,
           previewKey,
-          duration: duration,
         })
-        .where(eq(videos.muxUploadId, data.upload_id))
+        .where(
+          and(
+            eq(videos.muxUploadId, data.upload_id),
+            isNull(videos.muxPlaybackId)
+          )
+        )
         .returning();
+
+      // 4. Fallback / Edge Case Handling (The 1% scenario):
+      // If two requests bypassed Step 1 in the exact same millisecond, both uploaded files.
+      // The losing request will get `updatedVideo = undefined` here because the winner already updated the DB.
+      // In this rare edge case, we delete the duplicate files from UploadThing to keep storage clean.
+      if (!updatedVideo) {
+        await utapi.deleteFiles([thumbnailKey, previewKey]);
+        return new Response('Duplicate request handled', { status: 200 });
+      }
 
       if (updatedVideo) {
         await pusherServer.trigger(
