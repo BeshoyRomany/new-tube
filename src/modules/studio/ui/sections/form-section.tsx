@@ -276,10 +276,11 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
     }, 2000);
   };
 
-  // Update the video form after the pusher invalidate
+  // // Dynamically sync form values with incoming server/Pusher updates . after the pusher invalidate
+  // while preserving any active edits the user is currently typing (keepDirtyValues)
   useEffect(() => {
     if (video) {
-      form.reset(video);
+      form.reset(video, { keepDirtyValues: true });
     }
   }, [video, form]);
   return (
