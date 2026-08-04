@@ -27,6 +27,7 @@ export const BannerUploadModal = ({
       <UploadDropzone
         endpoint="bannerUploader"
         onClientUploadComplete={onUploadComplete}
+        className="ut-button:bg-primary ut-button:text-primary-foreground ut-button:shadow ut-button:hover:bg-primary/90 ut-button:transition-colors ut-button:ut-readying:bg-primary/70 ut-button:ut-uploading:bg-primary/70 ut-label:text-foreground ut-allowed-content:text-muted-foreground ut-upload-icon:text-muted-foreground border-muted-foreground/25 bg-transparent"
       />
     </ResponsiveModal>
   );

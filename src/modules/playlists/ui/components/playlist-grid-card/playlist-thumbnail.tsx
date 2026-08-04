@@ -38,9 +38,9 @@ export const PlaylistThumbnail = ({
         {/* Stack Effect layers */}
         <div className="relative ">
           {/* Background layers */}
-          <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-[97%] overflow-hidden rounded-xl bg-black/20 aspect-video"></div>
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-[97%] overflow-hidden rounded-xl bg-black/20 dark:bg-white/20 aspect-video"></div>
 
-          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-[98.5%] overflow-hidden rounded-xl bg-black/25 aspect-video"></div>
+          <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-[98.5%] overflow-hidden rounded-xl bg-black/25 dark:bg-white/30 aspect-video"></div>
 
           {/* Main Image */}
           <div className="relative overflow-hidden w-full rounded-xl aspect-video">

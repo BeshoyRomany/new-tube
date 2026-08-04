@@ -48,7 +48,7 @@ export const FilterCarousel = ({
       {/* Left fade */}
       <div
         className={cn(
-          'absolute left-12 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-white to-transparent',
+          'absolute left-12 top-0 bottom-0 w-12 z-10 bg-gradient-to-r from-background to-transparent',
           current === 1 && 'hidden'
         )}
       />
@@ -103,7 +103,7 @@ export const FilterCarousel = ({
         {/* Right fade */}
         <div
           className={cn(
-            'absolute right-12 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-white to-transparent',
+            'absolute right-12 top-0 bottom-0 w-12 z-10 bg-gradient-to-l from-background to-transparent',
             current === count && 'hidden'
           )}
         />

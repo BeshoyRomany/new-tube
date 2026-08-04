@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from '@/components/ui/sonner';
-import { ClerkProvider } from '@clerk/nextjs';
+import { ThemeProvider } from '@/components/theme-provider';
+import { ClerkThemeProvider } from '@/components/clerk-theme-provider';
 import { TRPCProvider } from '@/trpc/client';
 import './globals.css';
 
@@ -18,15 +19,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider afterSignOutUrl={'/'}>
-      <html lang="en">
-        <body className={inter.className}>
-          <TRPCProvider>
-            <Toaster />
-            {children}
-          </TRPCProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ClerkThemeProvider>
+            <TRPCProvider>
+              <Toaster />
+              {children}
+            </TRPCProvider>
+          </ClerkThemeProvider>
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }

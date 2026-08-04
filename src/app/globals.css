@@ -94,3 +94,40 @@ body {
 mux-player::part(poster) {
   transform: scale(1.02);
 }
+
+/* Reserve the scrollbar gutter so the page can't shift sideways when the
+   view-transition snapshot is taken. */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* Theme switch: straight cross-fade between the two themes.
+   No transform or blur on the root snapshot — those shift the whole page. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* New theme sits underneath, fully painted; the old one fades off the top. */
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+::view-transition-old(root) {
+  z-index: 2;
+  animation: theme-fade 400ms ease-out forwards;
+}
+
+@keyframes theme-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}

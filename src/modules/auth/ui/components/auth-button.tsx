@@ -42,7 +42,7 @@ const AuthButton = () => {
           <SignInButton mode="modal">
             <Button
               variant="outline"
-              className="px-4 py-2 font-medium text-blue-600 hover:text-blue-500 border-blue-500/20 rounded-full shadow-none [&_svg]:size-5"
+              className="px-4 py-2 font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 border-blue-500/20 rounded-full shadow-none [&_svg]:size-5"
             >
               <UserCircleIcon />
               Sign in

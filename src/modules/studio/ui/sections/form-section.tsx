@@ -116,7 +116,7 @@ const FormSectionSkeleton = () => {
         </div>
 
         <div className="flex flex-col gap-y-8 lg:col-span-2">
-          <div className="flex flex-col gap-y-4 bg-[#f9f9f9] rounded-xl overflow-hidden h-fit border">
+          <div className="flex flex-col gap-y-4 bg-muted/50 rounded-xl overflow-hidden h-fit border">
             <Skeleton className="aspect-video w-full" />
             <div className="p-4 flex flex-col gap-y-6">
               <div className="space-y-2">
@@ -371,11 +371,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                               )}
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent
-                            side="top"
-                            align="center"
-                            className="bg-black/70"
-                          >
+                          <TooltipContent side="top" align="center">
                             <p>Generate by AI</p>
                           </TooltipContent>
                         </Tooltip>
@@ -422,11 +418,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                               )}
                             </Button>
                           </TooltipTrigger>
-                          <TooltipContent
-                            side="top"
-                            align="center"
-                            className="bg-black/70"
-                          >
+                          <TooltipContent side="top" align="center">
                             <p>Generate by AI</p>
                           </TooltipContent>
                         </Tooltip>
@@ -526,7 +518,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                 />
               </div>
               <div className="flex flex-col gap-y-8 lg:col-span-2">
-                <div className="flex flex-col gap-y-4 bg-[#f9f9f9] rounded-xl overflow-hidden h-fit">
+                <div className="flex flex-col gap-y-4 bg-muted/50 rounded-xl overflow-hidden h-fit">
                   <div className="aspect-video overflow-hidden relative">
                     <VideoPlayer
                       playbackId={video.muxPlaybackId}
@@ -541,7 +533,7 @@ const FormSectionSuspense = ({ videoId }: FormSectionProps) => {
                         </p>
                         <div className="flex items-center gap-x-2">
                           <Link prefetch href={`/videos/${videoId}`}>
-                            <p className="line-clamp-1 text-sm text-blue-500">
+                            <p className="line-clamp-1 text-sm text-blue-500 dark:text-blue-400">
                               {fullUrl}
                             </p>
                           </Link>
