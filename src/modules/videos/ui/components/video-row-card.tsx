@@ -147,11 +147,7 @@ export const VideoRowCard = ({
                       {data.description ?? 'No description'}
                     </p>
                   </TooltipTrigger>
-                  <TooltipContent
-                    side="bottom"
-                    align="center"
-                    className="bg-black/70"
-                  >
+                  <TooltipContent side="bottom" align="center">
                     <p>{data.title ?? 'Untitled'}</p>
                   </TooltipContent>
                 </Tooltip>

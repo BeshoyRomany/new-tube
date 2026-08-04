@@ -27,8 +27,8 @@ export const UserPageBanner = ({ user }: UserPageBannerProps) => {
       />
       <div
         className={cn(
-          'w-full max-h-[200px] h-[15vh] md:h-[25vh] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl',
-          user.bannerUrl ? 'bg-cover bg-center' : 'bg-gray-100'
+          'w-full max-h-[200px] h-[15vh] md:h-[25vh] bg-gradient-to-r from-muted to-accent rounded-xl',
+          user.bannerUrl ? 'bg-cover bg-center' : 'bg-muted'
         )}
         style={{
           backgroundImage: user.bannerUrl
